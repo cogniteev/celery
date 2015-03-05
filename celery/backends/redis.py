@@ -93,8 +93,6 @@ class RedisBackend(KeyValueStoreBackend):
             'password': _get('PASSWORD'),
             'max_connections': self.max_connections,
             'sentinel': _get('SENTINEL') or str(sentinel),
-            'cluster_name': _get("CLUSTER_NAME") or 'mymaster',
-            'extra_sentinels': _get('EXTRA_SENTINELS') or extra_sentinels
         }
         if url:
             self.connparams = self._params_from_url(url, self.connparams)
@@ -109,10 +107,15 @@ class RedisBackend(KeyValueStoreBackend):
             )
 
         if not self.connparams['sentinel']:
-            for k in ['sentinel', 'cluster_name', 'extra_sentinels']:
-                self.connparams.pop(k)
+            self.connparams.pop('sentinel')
             self.sentinel = None
         else:
+            self.connparams.setdefault('cluster_name', _get("CLUSTER_NAME") or 'mymaster'),
+            self.connparams.setdefault('extra_sentinels', _get('EXTRA_SENTINELS') or extra_sentinels)
+            self.connparams.setdefault(
+                'min_other_sentinels',
+                int(_get('MIN_OTHER_SENTINELS') or 0)
+            )
             self.sentinel = sentinel_mod
 
         self.url = url
@@ -316,7 +319,10 @@ class RedisBackend(KeyValueStoreBackend):
     @cached_property
     def client(self):
         if self.sentinel is not None:
-            return self.sentinel_client.master_for(self.connparams['cluster_name'], redis_class=redis.Redis)
+            return self.sentinel_client.master_for(
+                self.connparams['cluster_name'],
+                redis_class=redis.Redis
+            )
         else:
             return self._create_client(**self.connparams)
 
@@ -331,6 +337,7 @@ class RedisBackend(KeyValueStoreBackend):
 
         return self.sentinel.Sentinel(
             sentinels,
+            min_other_sentinels=self.connparams['min_other_sentinels'],
             sentinel_kwargs=sentinel_args,
             **redis_connection_args
         )
