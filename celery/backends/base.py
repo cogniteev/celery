@@ -108,6 +108,8 @@ class BaseBackend(object):
             conf.CELERY_ACCEPT_CONTENT if accept is None else accept,
         )
         self.url = url
+        if conf.CELERY_BACKEND_RETRY_POLICY is not None:
+            self.retry_policy = conf.CELERY_BACKEND_RETRY_POLICY
 
     def as_uri(self, include_password=False):
         """Return the backend as an URI, sanitizing the password or not"""
