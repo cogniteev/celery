@@ -105,7 +105,7 @@ class BaseBackend(object):
         self.accept = prepare_accept_content(
             conf.CELERY_ACCEPT_CONTENT if accept is None else accept,
         )
-        if conf.CELERY_BACKEND_RETRY_POLICY is not None:
+        if conf.get('CELERY_BACKEND_RETRY_POLICY') is not None:
             self.retry_policy = conf.CELERY_BACKEND_RETRY_POLICY
 
     def mark_as_started(self, task_id, **meta):
