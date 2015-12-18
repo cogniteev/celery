@@ -210,7 +210,8 @@ class RedisBackend(KeyValueStoreBackend):
         if self.sentinel is not None:
             del self.client
         tts = next(intervals)
-        error('Connection to Redis lost: Retry (%s/%s) %s.',
+        error('Connection to Redis lost: %s: Retry (%s/%s) %s.',
+              exc,
               retries, max_retries or 'Inf',
               humanize_seconds(tts, 'in '))
         return tts
