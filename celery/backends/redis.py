@@ -342,6 +342,7 @@ class RedisBackend(KeyValueStoreBackend):
         else:
             return self._create_client(**self.connparams)
 
+    @cached_property
     def sentinel_client(self):
         sentinels = [(self.connparams['host'], self.connparams['port'])]
         sentinels.extend(self.connparams['extra_sentinels'])
